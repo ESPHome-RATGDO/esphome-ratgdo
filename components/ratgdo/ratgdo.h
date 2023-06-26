@@ -130,6 +130,8 @@ namespace ratgdo {
 
         uint32_t rollingCodeCounter { 0 };
         uint32_t lastSyncedRollingCodeCounter { 0 };
+        time_t autoCloseTime { 0 };
+        time_t previousAutoCloseTime { 0 };
 
         float startOpening { -1 };
         float openingDuration { 0 };
@@ -205,6 +207,7 @@ namespace ratgdo {
 
         void query_status();
         void query_openings();
+        void close_with_alarm();
 
         void printRollingCode();
         void getRollingCode(command::cmd command, uint32_t data, bool increment);

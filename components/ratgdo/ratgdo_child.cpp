@@ -16,6 +16,7 @@ namespace ratgdo {
     void RATGDOClient::on_opening_duration_change(float duration) {};
     void RATGDOClient::on_closing_duration_change(float duration) {};
     void RATGDOClient::on_openings_change(uint32_t openings) {};
+    void RATGDOClient::on_auto_close_time_change(time_t autoCloseTime) {};
     void RATGDOClient::on_button_state(ButtonState state) {};
 
 } // namespace ratgdo

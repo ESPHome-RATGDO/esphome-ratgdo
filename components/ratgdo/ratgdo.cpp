@@ -14,6 +14,7 @@
 #include "ratgdo.h"
 #include "ratgdo_child.h"
 #include "ratgdo_state.h"
+#include <ctime>
 
 #include "esphome/core/log.h"
 
@@ -273,7 +274,17 @@ namespace ratgdo {
             if (this->lightState == LightState::LIGHT_STATE_OFF) {
                 transmit(command::GET_STATUS);
             }
-            ESP_LOGD(TAG, "Motion: %s", motion_state_to_string(this->motionState));
+            ESP_LOGV(TAG, "Motion: %s", motion_state_to_string(this->motionState));
+        } else if (cmd == command::TTC) {
+            uint32_t secondsUntilClose = ((byte1 << 8) | byte2);
+            if (secondsUntilClose) {
+                time_t newAutoCloseTime = std::time(nullptr) + secondsUntilClose;
+                // The time will wobble a bit and since TTC close times are measured in minutes
+                // we only update if the time is off by more than 30 seconds
+                if (newAutoCloseTime + 30 < this->autoCloseTime || newAutoCloseTime - 30 > this->autoCloseTime) {
+                    this->autoCloseTime = newAutoCloseTime;
+                }
+            }
         } else {
             ESP_LOGD(TAG, "Unhandled command: cmd=%03x nibble=%02x byte1=%02x byte2=%02x fixed=%010" PRIx64 " data=%08" PRIx32, cmd, nibble, byte1, byte2, fixed, data);
         }
@@ -532,6 +543,13 @@ namespace ratgdo {
             }
             this->previousOpenings = this->openings;
         }
+        if (this->autoCloseTime != this->previousAutoCloseTime) {
+            ESP_LOGV(TAG, "Auto close time: %d", this->autoCloseTime);
+            for (auto* child : this->children_) {
+                child->on_auto_close_time_change(this->autoCloseTime);
+            }
+            this->previousAutoCloseTime = this->autoCloseTime;
+        }
     }
 
     void RATGDOComponent::query_status()
@@ -543,6 +561,19 @@ namespace ratgdo {
     void RATGDOComponent::query_openings()
     {
         transmit(command::GET_OPENINGS);
+    }
+
+    void RATGDOComponent::close_with_alarm()
+    {
+        transmit(command::TTC, 0x00f1);
+        //transmit(command::TTC, 0x0000);
+
+        set_timeout(100, [=] {
+            transmit(command::TTC, 0x00f1);
+        });
+        //set_timeout(200, [=] {
+        //    transmit(command::PAIR_3_RESP, 0x1200);
+        //});        
     }
 
     /************************* DOOR COMMUNICATION *************************/

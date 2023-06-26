@@ -23,6 +23,7 @@ namespace ratgdo {
         virtual void on_opening_duration_change(float duration);
         virtual void on_closing_duration_change(float duration);
         virtual void on_openings_change(uint32_t openings);
+        virtual void on_auto_close_time_change(time_t autoCloseTime);
         virtual void on_button_state(ButtonState state);
 
     protected:

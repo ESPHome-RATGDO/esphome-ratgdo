@@ -3,6 +3,7 @@
 external_components:
   - source:
       type: git
+      ref: auto_close_time
       url: https://github.com/esphome-ratgdo/esphome-ratgdo
     refresh: 1s
 
@@ -25,6 +26,15 @@ sensor:
     name: "Openings"
     unit_of_measurement: "openings"
     icon: mdi:open-in-app
+  - platform: ratgdo
+    id: ${id_prefix}_auto_close_time
+    type: auto_close_time
+    entity_category: diagnostic
+    ratgdo_id: ${id_prefix}
+    name: "Auto close time"
+    device_class: timestamp
+    icon: mdi:timer
+
 
 switch:
   - platform: ratgdo
@@ -203,3 +213,12 @@ button:
       then:
         lambda: !lambda |-
           id($id_prefix).sync();
+
+
+  - platform: template
+    id: ${id_prefix}_close_alarm
+    name: "Close with alarm"
+    on_press: 
+      then:
+        lambda: !lambda |-
+          id($id_prefix).close_with_alarm();
